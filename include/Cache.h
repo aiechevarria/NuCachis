@@ -1,8 +1,9 @@
 #pragma once
 
 #include "MainMemory.h"
+#include "MemoryElement.h"
 
-class Cache {
+class Cache : public MemoryElement {
 private:
 public:
     Cache();

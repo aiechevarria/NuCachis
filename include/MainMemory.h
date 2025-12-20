@@ -3,7 +3,9 @@
 #include <unordered_map>
 #include <vector>
 
-class MainMemory {
+#include "MemoryElement.h"
+
+class MainMemory : public MemoryElement {
 private:
     std::unordered_map<unsigned int, int> memory;
 

@@ -9,6 +9,7 @@ include_directories(lib/imgui/backends)
 
 # NuCachis project source files
 set(PROJECT_SOURCES
+    src/MemoryElement.cpp
     src/MainMemory.cpp
     src/Cache.cpp
     src/Computer.cpp
