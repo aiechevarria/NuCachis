@@ -12,7 +12,7 @@ set(PROJECT_SOURCES
     src/MemoryElement.cpp
     src/MainMemory.cpp
     src/Cache.cpp
-    src/Computer.cpp
+    src/Simulator.cpp
     src/GUI.cpp
     src/Main.cpp
 )
