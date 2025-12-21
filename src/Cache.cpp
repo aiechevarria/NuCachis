@@ -11,7 +11,7 @@
  * @param policy The write policy used in the cache
  * @param split If the cache is split for instructions and data or not.
  */
-Cache::Cache(uint32_t numSets, uint32_t numWays, WritePolicy policy, bool split) {
+Cache::Cache(uint32_t numSets, uint32_t numWays, PolicyWrite policy, bool split) {
     uint8_t numCaches;
     writePolicy = policy;
     isSplit = split;

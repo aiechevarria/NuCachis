@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 #include "MemoryElement.h"
+#include "PolicyWrite.h"
 
 // A cache line
 typedef struct {
@@ -15,13 +16,6 @@ typedef struct {
 
 
 class Cache : public MemoryElement {
-// Write policies
-typedef enum {
-    WRITE_BACK,
-    WRITE_THROUGH,
-    NUM_WRITE_POLICIES
-} WritePolicy;
-
 // Caches
 typedef enum {
     DATA_CACHE,
@@ -35,11 +29,11 @@ private:
 
     // Properties of the cache
     bool isSplit;
-    WritePolicy writePolicy;
+    PolicyWrite writePolicy;
     uint32_t dataSets, dataWays, instSets, instWays;
 
 public:
-    Cache(uint32_t numSets, uint32_t numWays, WritePolicy policy, bool split);
+    Cache(uint32_t numSets, uint32_t numWays, PolicyWrite policy, bool split);
     ~Cache();
     bool isCacheSplit();
     CacheLine** getDataCache();

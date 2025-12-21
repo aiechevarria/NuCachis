@@ -9,6 +9,7 @@ include_directories(lib/imgui/backends)
 
 # NuCachis project source files
 set(PROJECT_SOURCES
+    src/Misc.cpp
     src/MemoryElement.cpp
     src/MainMemory.cpp
     src/Cache.cpp
@@ -27,10 +28,17 @@ set(IMGUI_SOURCES
     lib/imgui/backends/imgui_impl_opengl3.cpp
 )
 
+# Parsers
+set(PARSER_SOURCES
+    lib/parsers/dictionary.c
+    lib/parsers/iniparser.c
+)
+
 # Combine both
 add_executable(NuCachis
     ${PROJECT_SOURCES}
     ${IMGUI_SOURCES}
+    ${PARSER_SOURCES}
 )
 
 # Link SDL2 and OpenGL
