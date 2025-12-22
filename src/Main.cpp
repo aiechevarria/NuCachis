@@ -2,6 +2,11 @@
 #include "GUI.h"
 
 int main(int, char**) {
+    // File paths for the trace and config
+    char configPath[MAX_PATH_LENGTH] = "\0";
+    char tracePath[MAX_PATH_LENGTH] = "\0";
+    bool filesProvided = false;
+
     // Create a new GUI
     GUI* gui = new GUI();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
@@ -25,8 +30,12 @@ int main(int, char**) {
         ImGui::NewFrame();
 
         // Render the main window (workspace) on each frame
-        gui->renderWorkspace();
-        gui->renderPicker();
+        if (!filesProvided) {
+            gui->renderPicker(configPath, tracePath, &filesProvided);
+        } else {
+            // TODO check that both the config and trace are correct
+            gui->renderWorkspace();
+        }
 
         // Render the frame afterwards
         ImGui::Render();

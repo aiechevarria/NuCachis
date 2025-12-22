@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 include_directories(include)
 include_directories(lib/imgui)
 include_directories(lib/imgui/backends)
+include_directories(lib/ImGuiFileDialog)
 include_directories(lib/parsers)
 
 # NuCachis project source files
@@ -31,6 +32,11 @@ set(IMGUI_SOURCES
     lib/imgui/backends/imgui_impl_opengl3.cpp
 )
 
+# ImGuiFileDialog source files
+set(IMGUIFILEDIALOG_SOURCES
+    lib/ImGuiFileDialog/ImGuiFileDialog.cpp
+)
+
 # Parsers
 set(PARSER_SOURCES
     lib/parsers/dictionary.c
@@ -41,6 +47,7 @@ set(PARSER_SOURCES
 add_executable(NuCachis
     ${PROJECT_SOURCES}
     ${IMGUI_SOURCES}
+    ${IMGUIFILEDIALOG_SOURCES}
     ${PARSER_SOURCES}
 )
 

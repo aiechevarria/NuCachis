@@ -16,10 +16,6 @@
 // Simulator config
 #define MAX_CACHE_LEVELS 5
 
-// File paths for the trace and config
-static char configPath[MAX_PATH_LENGTH];
-static char tracePath[MAX_PATH_LENGTH];
-
 // The type of operation that an instruction will represent
 typedef enum {
     LOAD,

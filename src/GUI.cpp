@@ -1,5 +1,5 @@
-#include "Misc.h"
 #include "GUI.h"
+#include "Misc.h"
 
 GUI::GUI () {
     // Setup SDL
@@ -46,8 +46,13 @@ SDL_Window* GUI::getWindow() {
 
 /**
  * Renders the file picker.
+ * @param configPath Pointer to a sufficiently large array of characters for the config path
+ * @param tracePath Pointer to a sufficiently large array of characters for the trace path
+ * @param clickedOk Pointer to a boolean. Toggled true when the user clicks the launch button
  */
-void GUI::renderPicker() {
+void GUI::renderPicker(char configPath[MAX_PATH_LENGTH], char tracePath[MAX_PATH_LENGTH], bool* clickedLaunch) {
+    SDL_GetWindowSize(window, &windowWidth, &windowHeight);
+
     // Set a size and position based on the current workspace dimms
     ImVec2 windowSize(windowWidth * PICKER_WINDOW_WIDTH, windowHeight * PICKER_WINDOW_HEIGHT);
     ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
@@ -56,16 +61,21 @@ void GUI::renderPicker() {
     ImGui::Begin("Welcome to NuCachis");
     ImGui::Text("Please, pick a config and trace file to start the simulation");
 
-    ImGui::InputText("##ConfigPicker", configPath, sizeof(configPath));
+    ImGui::InputText("##ConfigPicker", configPath, MAX_PATH_LENGTH);
     ImGui::SameLine();
+
     if (ImGui::Button("Pick config")) {
-        // TODO call file picker
+        IGFD::FileDialogConfig config;
+        config.path = '.';
+		ImGuiFileDialog::Instance()->OpenDialog("ChooseConfigFile", "Choose Config File", ".ini", config);
     }
 
-    ImGui::InputText("##TracePicker", tracePath, sizeof(tracePath));
+    ImGui::InputText("##TracePicker", tracePath, MAX_PATH_LENGTH);
     ImGui::SameLine();
     if (ImGui::Button("Pick trace")) {
-        // TODO call file picker
+        IGFD::FileDialogConfig trace;
+        trace.path = '.';
+		ImGuiFileDialog::Instance()->OpenDialog("ChooseTraceFile", "Choose Trace File", ".vca", trace);
     }
 
     ImGui::Spacing();
@@ -73,6 +83,23 @@ void GUI::renderPicker() {
     ImGui::Spacing();
 
     if (ImGui::Button("Launch simulator")) {
+        *clickedLaunch = true;
+    }
+
+    // File pickers
+    if (ImGuiFileDialog::Instance()->Display("ChooseConfigFile")) {
+        if (ImGuiFileDialog::Instance()->IsOk()) {
+            strncpy(configPath, ImGuiFileDialog::Instance()->GetFilePathName().c_str(), MAX_PATH_LENGTH);
+        }
+        ImGuiFileDialog::Instance()->Close();
+    }
+
+    if (ImGuiFileDialog::Instance()->Display("ChooseTraceFile")) {
+        if (ImGuiFileDialog::Instance()->IsOk()) {
+            // std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+            strncpy(tracePath, ImGuiFileDialog::Instance()->GetFilePathName().c_str(), MAX_PATH_LENGTH);
+        }
+        ImGuiFileDialog::Instance()->Close();
     }
 
     ImGui::End();
