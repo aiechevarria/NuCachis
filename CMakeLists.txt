@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_BUILD_TYPE Debug)
 
 include_directories(include)
+include_directories(lib/CLI11)
 include_directories(lib/imgui)
 include_directories(lib/imgui/backends)
 include_directories(lib/ImGuiFileDialog)

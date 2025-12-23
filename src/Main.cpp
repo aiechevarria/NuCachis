@@ -1,10 +1,34 @@
-#include "Misc.h"
-#include "GUI.h"
-#include "ParserConfig.h"
-#include "ParserTrace.h"
-#include "Simulator.h"
+#include "Main.h"
+#include <string.h>
 
-int main(int, char**) {
+/**
+ * Parses the CLI arguments.
+ * @param argc 
+ * @param argv 
+ * @return AppArgs The arguments packed in an AppArgs struct
+ */
+AppArgs parseArguments(int argc, char** argv) {
+    AppArgs args;
+
+    CLI::App app{APP_DESC};
+    argv = app.ensure_utf8(argv);
+
+    app.add_option("-c,--config", args.configFile, "Path to the configuration file")
+       ->check(CLI::ExistingFile);
+    app.add_option("-t,--trace", args.traceFile, "Path to the trace file")
+       ->check(CLI::ExistingFile);
+    app.add_flag("-g,--nogui", args.noGui, "Disable the GUI");
+
+    try {
+        app.parse(argc, argv);
+    } catch (const CLI::ParseError &e) {
+        std::exit(app.exit(e));
+    }
+
+    return args;
+}
+
+int main(int argc, char** argv) {
     // File paths for the trace and config
     char configPath[MAX_PATH_LENGTH] = "\0";
     char tracePath[MAX_PATH_LENGTH] = "\0";
@@ -17,54 +41,67 @@ int main(int, char**) {
 
     // Structures
     Simulator* sim;
+    AppArgs args = parseArguments(argc, argv);
 
-    // Create a new GUI
-    GUI* gui = new GUI();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-    SDL_Window* window = gui->getWindow();
-
-    // Main loop
-    bool running = true;
-
-    while (running) {
-        // Mandatory SDL polling on each frame
-        SDL_Event event;
-        while (SDL_PollEvent(&event)) {
-            ImGui_ImplSDL2_ProcessEvent(&event);
-            if (event.type == SDL_QUIT)
-                running = false;
-        }
-
-        // Start a new rendering frame
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplSDL2_NewFrame();
-        ImGui::NewFrame();
-
-        // Render the main window (workspace) on each frame
-        if (!filesProvided) {
-            gui->renderPicker(configPath, tracePath, &filesProvided);
-        } else {
-            // Parse the files the first time they are provided
-            if (!filesValidated) {
-                parseConfiguration(configPath, &sc);
-                parseTrace(tracePath, ops, &sc.miscNumOperations);
-                filesValidated = true;
-
-                sim = new Simulator(&sc, ops);
-            }
-
-            // TODO check that both the config and trace are correct
-            gui->renderWorkspace(sim);
-        }
-
-        // Render the frame afterwards
-        ImGui::Render();
-        glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-        SDL_GL_SwapWindow(window);
+    // Copy the config and trace files if they were provided as an argument
+    if (!args.configFile.empty()) {
+        strncpy(configPath, args.configFile.c_str(), MAX_PATH_LENGTH);
+    }
+    if (!args.traceFile.empty()) {
+        strncpy(tracePath, args.traceFile.c_str(), MAX_PATH_LENGTH);
     }
 
+    if (args.noGui) {
+        // TODO Add headless run
+    } else {
+        // Create a new GUI
+        GUI* gui = new GUI();
+        ImGuiIO& io = ImGui::GetIO(); (void)io;
+        SDL_Window* window = gui->getWindow();
+
+        // Main loop
+        bool running = true;
+
+        while (running) {
+            // Mandatory SDL polling on each frame
+            SDL_Event event;
+            while (SDL_PollEvent(&event)) {
+                ImGui_ImplSDL2_ProcessEvent(&event);
+                if (event.type == SDL_QUIT)
+                    running = false;
+            }
+
+            // Start a new rendering frame
+            ImGui_ImplOpenGL3_NewFrame();
+            ImGui_ImplSDL2_NewFrame();
+            ImGui::NewFrame();
+
+            // Render the main window (workspace) on each frame
+            if (!filesProvided) {
+                gui->renderPicker(configPath, tracePath, &filesProvided);
+            } else {
+                // Parse the files the first time they are provided
+                if (!filesValidated) {
+                    parseConfiguration(configPath, &sc);
+                    parseTrace(tracePath, ops, &sc.miscNumOperations);
+                    filesValidated = true;
+
+                    sim = new Simulator(&sc, ops);
+                }
+
+                // TODO check that both the config and trace are correct
+                gui->renderWorkspace(sim);
+            }
+
+            // Render the frame afterwards
+            ImGui::Render();
+            glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
+            glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT);
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+            SDL_GL_SwapWindow(window);
+        }
+    }
+    
     return 0;
 }

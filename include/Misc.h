@@ -13,6 +13,7 @@
 
 // App config
 #define APP_NAME "NuCachis"
+#define APP_DESC "NuCachis. A simple, interactive cache simulator"
 #define WINDOW_WIDTH 1280
 #define WINDOW_HEIGHT 720
 #define MAX_PATH_LENGTH 512
