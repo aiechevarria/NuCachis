@@ -26,6 +26,7 @@
 // Cache window
 #define CACHE_WINDOW_WIDTH  (1 - (INSTR_WINDOW_WIDTH + MEM_WINDOW_WIDTH))   // Take up all the free remaining space
 #define CACHE_WINDOW_HEIGHT 1
+#define MIN_CACHE_TABLE_WIDTH 300.0f
 
 class GUI {
 private:
@@ -35,6 +36,10 @@ private:
     // Window sizes
     int windowHeight, windowWidth; 
 
+    // Draw functions
+    void drawCacheTable(CacheLine** cache, uint32_t numLines, char* label);
+
+    // Main section renderers
     void renderInstructionWindow(Simulator* sim);
     void renderStatsWindow(Simulator* sim);
     void renderCacheWindow(Simulator* sim);

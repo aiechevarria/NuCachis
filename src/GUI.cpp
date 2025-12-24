@@ -1,4 +1,6 @@
 #include "GUI.h"
+#include "imgui.h"
+#include <cstdio>
 
 GUI::GUI () {
     // Setup SDL
@@ -43,6 +45,39 @@ SDL_Window* GUI::getWindow() {
     return window;
 }
 
+void GUI::drawCacheTable(CacheLine** cache, uint32_t numLines, char* label) {
+    ImGui::Text("%s\n", label);
+
+    // Display the instruction cache 
+    if (ImGui::BeginTable(label, 9, ImGuiTableFlags_Borders)) {
+        ImGui::TableSetupColumn("L");
+        ImGui::TableSetupColumn("S");
+        ImGui::TableSetupColumn("W");
+        ImGui::TableSetupColumn("D");
+        ImGui::TableSetupColumn("V");
+        ImGui::TableSetupColumn("1st Acc.");
+        ImGui::TableSetupColumn("Last Acc.");
+        ImGui::TableSetupColumn("# Acc.");
+        ImGui::TableSetupColumn("Content");
+        ImGui::TableHeadersRow();
+
+        for (int i = 0; i < numLines; i++) {
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0); ImGui::Text("%d", i);
+            ImGui::TableSetColumnIndex(0); ImGui::Text("%u", cache[i]->set);
+            ImGui::TableSetColumnIndex(0); ImGui::Text("%u", cache[i]->way);
+            ImGui::TableSetColumnIndex(0); ImGui::Text("%u", cache[i]->dirty);
+            ImGui::TableSetColumnIndex(0); ImGui::Text("%u", cache[i]->valid);
+            ImGui::TableSetColumnIndex(0); ImGui::Text("%u", cache[i]->firstAccess);
+            ImGui::TableSetColumnIndex(0); ImGui::Text("%u", cache[i]->lastAccess);
+            ImGui::TableSetColumnIndex(0); ImGui::Text("%u", cache[i]->numberAccesses);
+            ImGui::TableSetColumnIndex(0); ImGui::Text("%u", 0);
+        }
+
+        ImGui::EndTable();
+    }
+}
+
 /**
  * Renders the instruction window.
  */
@@ -76,48 +111,63 @@ void GUI::renderInstructionWindow(Simulator* sim) {
 
 /**
  * Renders the cache window.
+ * @param sim Pointer to the simulator
  */
 void GUI::renderCacheWindow(Simulator* sim) {
+    // Get the caches
+    Cache* caches = *sim->getCaches();
+    char label[5] = "\0";               // Label for the columns
+
     // Set a size and position based on the current workspace dimms
     ImVec2 windowSize(windowWidth * CACHE_WINDOW_WIDTH, windowHeight * CACHE_WINDOW_HEIGHT);
     ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
     ImVec2 windowPos((windowWidth * INSTR_WINDOW_WIDTH), 0);
     ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
 
-    // Start the window disabling collapse
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoCollapse;
-    ImGui::Begin("Cache Hierarchy", nullptr, window_flags);
 
-    ImGui::Text("L1I");
-    if (ImGui::BeginTable("L1I", 2, ImGuiTableFlags_Borders)) {
-        ImGui::TableSetupColumn("Address");
-        ImGui::TableSetupColumn("Data");
-        ImGui::TableHeadersRow();
+    if (ImGui::Begin("Cache Hierarchy", nullptr, window_flags)) {
+        uint8_t numCaches = sim->getNumCaches();
+        ImGuiTableFlags table_flags = ImGuiTableFlags_ScrollX | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable;
+        
+        // Create a table to house multiple caches
+        if (ImGui::BeginTable("HierarchyTable", numCaches, table_flags)) {
+            // Setup as many columns as caches with a label and a min width
+            for (int i = 0; i < numCaches; i++) {
+                char label[32];
+                sprintf(label, "L%d Cache", i + 1);
+                ImGui::TableSetupColumn(label, ImGuiTableColumnFlags_WidthFixed, MIN_CACHE_TABLE_WIDTH);
+            }
+            ImGui::TableHeadersRow();
 
-        for (int row = 0; row < 5; ++row) {
+            // Since this is a table, make a single row that has everything
             ImGui::TableNextRow();
-            ImGui::TableSetColumnIndex(0); ImGui::Text("0x%X", 0x10 + row);
-            ImGui::TableSetColumnIndex(1); ImGui::Text("%d", row * 10);
+
+            for (int i = 0; i < numCaches; i++) {
+                ImGui::TableSetColumnIndex(i);
+
+                // Generate a unique ID for the child window
+                char childLabel[32];
+                sprintf(childLabel, "Child_L%d", i);
+
+                // ImVec2(0, 0) tells it to fill the width and height of the cell.
+                ImGui::BeginChild(childLabel, ImVec2(0, 0), true, ImGuiWindowFlags_HorizontalScrollbar);
+
+                // Draw the content of the caches inside of the talbe
+                if (caches[i].isCacheSplit()) {
+                    drawCacheTable(caches[i].getInstCache(), caches[i].getCacheLines() / 2, (char*) "Instructions");
+                    ImGui::Separator(); // Add a visual separator between split caches
+                    drawCacheTable(caches[i].getDataCache(), caches[i].getCacheLines() / 2, (char*) "Data");
+                } else {
+                    drawCacheTable(caches[i].getDataCache(), caches[i].getCacheLines(), (char*) "Data");
+                }
+
+                ImGui::EndChild();
+            }
+
+            ImGui::EndTable();
         }
-
-        ImGui::EndTable();
     }
-
-    ImGui::Text("L1D");
-    if (ImGui::BeginTable("L1D", 2, ImGuiTableFlags_Borders)) {
-        ImGui::TableSetupColumn("Address");
-        ImGui::TableSetupColumn("Data");
-        ImGui::TableHeadersRow();
-
-        for (int row = 0; row < 5; ++row) {
-            ImGui::TableNextRow();
-            ImGui::TableSetColumnIndex(0); ImGui::Text("0x%X", 0x10 + row);
-            ImGui::TableSetColumnIndex(1); ImGui::Text("%d", row * 10);
-        }
-
-        ImGui::EndTable();
-    }
-
     ImGui::End();
 }
 

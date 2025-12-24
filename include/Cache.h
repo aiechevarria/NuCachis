@@ -10,7 +10,7 @@
 
 // A cache line
 typedef struct {
-    uint64_t content;
+    uint32_t* content;              // Pointer to an array of words
     uint32_t tag, set, way;
     uint32_t firstAccess, lastAccess, numberAccesses;
     bool valid, dirty;
@@ -44,6 +44,7 @@ public:
     bool isCacheSplit();
     CacheLine** getDataCache();
     CacheLine** getInstCache();
+    uint32_t getCacheLines();
 
     void flush();
 };

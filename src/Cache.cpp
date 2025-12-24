@@ -24,9 +24,13 @@ Cache::Cache(SimulatorConfig* sc, uint8_t id) {
         // Allocate the caches
         caches[INST_CACHE] = (CacheLine**) malloc(sets / 2 * ways * sizeof(CacheLine));
         caches[DATA_CACHE] = (CacheLine**) malloc(sets / 2 * ways * sizeof(CacheLine));
+
+        // TODO allocate space for lineSize / 4 words in content
     } else {
         caches[INST_CACHE] = nullptr;
         caches[DATA_CACHE] = (CacheLine**) malloc(sets * ways * sizeof(CacheLine));
+
+        // TODO allocate space for lineSize / 4 words in content
     }
 
     // Init the cache
@@ -70,6 +74,15 @@ CacheLine** Cache::getDataCache() {
 CacheLine** Cache::getInstCache() {
     return caches[INST_CACHE];
 } 
+
+/**
+ * Gets the total number of lines in a cache. If the cache is split, it will return the sum of both.
+ * 
+ * @return uint32_t The number of cache lines
+ */
+uint32_t Cache::getCacheLines() {
+    return ways * sets;
+}
 
 /**
  * Resets the entire cache. 
