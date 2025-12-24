@@ -1,6 +1,5 @@
 #include "GUI.h"
-#include "imgui.h"
-#include <cstdio>
+
 
 GUI::GUI () {
     // Setup SDL
@@ -179,6 +178,9 @@ void GUI::renderCacheWindow(Simulator* sim) {
  * Renders the memory window.
  */
 void GUI::renderMemoryWindow(Simulator* sim) {
+    MemoryLine* memory = sim->getMemory()->getMemory();
+    uint64_t pageSize = sim->getMemory()->getPageSize();
+
     // Set a size and position based on the current workspace dimms
     ImVec2 windowSize(windowWidth * MEM_WINDOW_WIDTH, windowHeight * MEM_WINDOW_HEIGHT);
     ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
@@ -194,10 +196,10 @@ void GUI::renderMemoryWindow(Simulator* sim) {
         ImGui::TableSetupColumn("Data");
         ImGui::TableHeadersRow();
 
-        for (int row = 0; row < 5; ++row) {
+        for (int i = 0; i < pageSize / sim->getWordWidth(); i++) {
             ImGui::TableNextRow();
-            ImGui::TableSetColumnIndex(0); ImGui::Text("0x%X", 0x10 + row);
-            ImGui::TableSetColumnIndex(1); ImGui::Text("%d", row * 10);
+            ImGui::TableSetColumnIndex(0); ImGui::Text("0x%X", memory[i].address);
+            ImGui::TableSetColumnIndex(1); ImGui::Text("%d", memory[i].content);
         }
 
         ImGui::EndTable();

@@ -14,10 +14,10 @@
 #include "ParserConfig.h"
 
 // Valid configuration keys for each simulated element
-#define CPU_KEYS 2
+#define CPU_KEYS 3
 #define MEMORY_KEYS 5
 #define CACHE_KEYS 7
-const char* keysCpu[] =       {"address_width", "rand_seed"};
+const char* keysCpu[] =       {"address_width", "word_width", "rand_seed"};
 const char* keysMemory[] =    {"size", "access_time_1","access_time_burst", "page_size", "page_base_address"};
 const char* keysCache[] =     {"line_size", "size", "associativity", "write_policy", "replacement_policy", "separated", "access_time"};
 

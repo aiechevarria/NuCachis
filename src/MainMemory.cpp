@@ -1,6 +1,10 @@
 #include "MainMemory.h"
 
 MainMemory::MainMemory(SimulatorConfig* sc) {
+    // Address size (This could be moved to the MemoryElement constructor in the future, perhaps)
+    wordWidth = sc->cpuWordWidth / 4;
+    addressWidth = sc->cpuAddressWidth / 4;
+
     // Memory geometry
     size = sc->memSize;
     pageSize = sc->memPageSize;
@@ -11,20 +15,36 @@ MainMemory::MainMemory(SimulatorConfig* sc) {
     accessTimeBurst = sc->memAccessTimeBurst;
 
     // Allocate memory for the memory
-    // The size is given in bytes, but the data is only addressable/displayed in 32-bit words
-    memory = (MemoryLine*) malloc(sizeof(MemoryLine) * (size / 4));
+    // The size is given in bytes, but the data is only addressable/displayed in words
+    memory = (MemoryLine*) malloc(sizeof(MemoryLine) * (size / wordWidth));
 }
 
 MainMemory::~MainMemory() {
     free(memory);
 }
 
-uint32_t MainMemory::getWord(uint64_t address) {
-    return memory[(address - pageBaseAddress) / 4].content;
+/**
+ * Gets the array of main memory elements.
+ * @return MemoryLine* Pointer to the main memory
+ */
+MemoryLine* MainMemory::getMemory() {
+    return memory;
 }
 
-void MainMemory::setWord(uint64_t address, int value) {
-    memory[(address - pageBaseAddress) / 4].content = value;
+/**
+ * Gets the size of a page in Bytes.
+ * @return uint64_t The size of the page in Bytes;
+ */
+uint64_t MainMemory::getPageSize() {
+    return pageSize;
+}
+
+/**
+ * Gets the base address in which the memory starts.
+ * @return uint64_t The base address of the memory
+ */
+uint64_t MainMemory::getPageBaseAddress() {
+    return pageBaseAddress;
 }
 
 /**
@@ -32,11 +52,11 @@ void MainMemory::setWord(uint64_t address, int value) {
  */
 void MainMemory::flush() {
     // Calculate the maximum number of array items to cover up a page
-    uint64_t pageLimit = pageSize / 4;
+    uint64_t pageLimit = pageSize / wordWidth;
 
     // Fill the memory with increasing numbers
     for (int i = 0; i < pageLimit; i++) {
-        memory[i].address = i * 4 + pageBaseAddress;
+        memory[i].address = i * wordWidth + pageBaseAddress;
         memory[i].content = i;
     }
 }

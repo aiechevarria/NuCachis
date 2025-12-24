@@ -18,6 +18,7 @@ private:
     // The actual main memory
     MemoryLine* memory;
 
+    int32_t addressWidth, wordWidth;        // In Bytes
     int64_t size, pageSize, pageBaseAddress;
     double accessTimeSingle, accessTimeBurst;
 
@@ -25,8 +26,9 @@ public:
     MainMemory(SimulatorConfig* sc);
     ~MainMemory();
 
-    uint32_t getWord(uint64_t address);
-    void setWord(uint64_t address, int value);
+    MemoryLine* getMemory();
+    uint64_t getPageSize();
+    uint64_t getPageBaseAddress();
 
     void flush();
 };

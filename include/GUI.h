@@ -9,6 +9,7 @@
 #include "ImGuiFileDialog.h"
 #include "Misc.h"
 #include "Simulator.h"
+#include "MainMemory.h"
 
 // Proportions and placement of each window respective to the workspace
 // Picker window
@@ -20,7 +21,7 @@
 #define INSTR_WINDOW_HEIGHT 0.65
 
 // Memory window
-#define MEM_WINDOW_WIDTH  0.2
+#define MEM_WINDOW_WIDTH  0.15
 #define MEM_WINDOW_HEIGHT 1
 
 // Cache window

@@ -25,13 +25,13 @@ Cache::Cache(SimulatorConfig* sc, uint8_t id) {
         caches[DATA_CACHE] = (CacheLine*) malloc(sets / 2 * ways * sizeof(CacheLine));
         caches[INST_CACHE] = (CacheLine*) malloc(sets / 2 * ways * sizeof(CacheLine));
 
-        // TODO allocate space for lineSize / 4 words in content
+        // TODO allocate space for lineSize / wordSize words in content
     } else {
         caches[DATA_CACHE] = (CacheLine*) malloc(sets * ways * sizeof(CacheLine));
         caches[INST_CACHE] = nullptr;
         
 
-        // TODO allocate space for lineSize / 4 words in content
+        // TODO allocate space for lineSize / wordSize words in content
     }
 }
 
