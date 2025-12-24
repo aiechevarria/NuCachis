@@ -17,11 +17,11 @@ private:
     MemoryElement* hierarchyStart;  // The first element of the hierarchy. All messages will be sent to it
 
     // Instructions to execute
-    MemoryOperation* ops;
+    MemoryOperation* operations;
 
     // CPU variables
     int32_t addressWidth, wordWidth;        // In Bytes
-    uint32_t pc, numOperations;
+    uint32_t cycle, numOperations;
     uint8_t cacheLevels;
 
 public:
@@ -42,4 +42,5 @@ public:
     uint8_t getNumCaches();
     uint32_t getAddressWidth();
     uint32_t getWordWidth();
+    uint32_t getCurrentCycle();
 };

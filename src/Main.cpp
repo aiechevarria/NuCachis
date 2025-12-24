@@ -90,7 +90,7 @@ int main(int argc, char** argv) {
                 if (!filesValidated) {
                     // Parse the trace and make sure there are no fatal errors
                     if (parseConfiguration(configPath, &sc) != -2 &&
-                        parseTrace(tracePath, ops, &sc.miscNumOperations) != -2) {
+                        parseTrace(tracePath, &ops, &sc.miscNumOperations) != -2) {
                         filesValidated = true;
 
                         sim = new Simulator(&sc, ops);

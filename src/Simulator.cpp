@@ -13,6 +13,10 @@ Simulator::Simulator(SimulatorConfig* sc, MemoryOperation* ops) {
     addressWidth = sc->cpuAddressWidth / 4;
     numOperations = sc->miscNumOperations;
     cacheLevels = sc->miscCacheLevels;
+    cycle = 0;
+
+    // Store the trace
+    operations = ops;
 
     // Create the memory hierarchy
     memory = new MainMemory(sc);
@@ -67,8 +71,8 @@ void Simulator::stepAll(bool stopOnBreakpoint) {
  * Sets the state to a default and starts the simulation from the beginning.
  */
 void Simulator::reset() {
-    // Reset the program counter
-    pc = 0;
+    // Reset the cycles
+    cycle = 0;
 
     // Init the mem hierarchy
     memory->flush();
@@ -82,7 +86,7 @@ void Simulator::reset() {
  * @return MemoryOperation* Pointer to an array of memory operations that represent the trace.
  */
 MemoryOperation* Simulator::getOps() {
-    return ops;
+    return operations;
 }
 
 /**
@@ -132,4 +136,12 @@ uint32_t Simulator::getAddressWidth() {
  */
 uint32_t Simulator::getWordWidth() {
     return wordWidth;
+}
+
+/**
+ * Returns the current cycle
+ * @return uint32_t The program counter.
+ */
+uint32_t Simulator::getCurrentCycle() {
+    return cycle;
 }

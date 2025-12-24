@@ -1,6 +1,5 @@
 #include "GUI.h"
 
-
 GUI::GUI () {
     // Setup SDL
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0) {
@@ -54,9 +53,9 @@ void GUI::drawCacheTable(CacheLine* cache, uint32_t numLines, char* label) {
         ImGui::TableSetupColumn("W");
         ImGui::TableSetupColumn("D");
         ImGui::TableSetupColumn("V");
-        ImGui::TableSetupColumn("1st Acc.");
-        ImGui::TableSetupColumn("Last Acc.");
-        ImGui::TableSetupColumn("# Acc.");
+        ImGui::TableSetupColumn("1st Acc");
+        ImGui::TableSetupColumn("Last Acc");
+        ImGui::TableSetupColumn("# Acc");
         ImGui::TableSetupColumn("Content");
         ImGui::TableHeadersRow();
 
@@ -81,6 +80,10 @@ void GUI::drawCacheTable(CacheLine* cache, uint32_t numLines, char* label) {
  * Renders the instruction window.
  */
 void GUI::renderInstructionWindow(Simulator* sim) {
+    // Get the operations
+    MemoryOperation* ops = sim->getOps();
+    uint32_t numOps = sim->getNumOps();
+
     // Set a size and position based on the current workspace dimms
     ImVec2 windowSize(windowWidth * INSTR_WINDOW_WIDTH, windowHeight * INSTR_WINDOW_HEIGHT);
     ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
@@ -102,6 +105,39 @@ void GUI::renderInstructionWindow(Simulator* sim) {
     ImGui::SameLine();
     if (ImGui::Button("Reset")) {
         sim->reset();
+    }
+
+    ImGui::Separator();
+
+    // Current cycle
+    ImGui::Text("Current cycle: %u", sim->getCurrentCycle());
+
+    ImGui::Separator();
+
+    // Operation table
+    if (ImGui::BeginTable("Operations", 5, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit, ImVec2(0.0f, 0.0f))) {
+        ImGui::TableSetupColumn("B");
+        ImGui::TableSetupColumn("Op");
+        ImGui::TableSetupColumn("Type");
+        ImGui::TableSetupColumn("Address");
+        ImGui::TableSetupColumn("Data");
+        ImGui::TableHeadersRow();
+
+        for (int i = 0; i < numOps; i++) {
+            // Create an ID for the checkboxes
+            char checkboxId[6];
+            sprintf(checkboxId, "##C%d", i);
+
+            // Draw the table
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0); ImGui::Checkbox(checkboxId, &ops[i].hasBreakPoint);
+            ImGui::TableSetColumnIndex(1); ImGui::Text("%c", ops[i].operation == LOAD ? 'L' : 'S');
+            ImGui::TableSetColumnIndex(2); ImGui::Text("%c", ops[i].isData ? 'D' : 'I');
+            ImGui::TableSetColumnIndex(3); ImGui::Text("0x%lX", ops[i].address);
+            ImGui::TableSetColumnIndex(4); ops[i].operation == STORE ? ImGui::Text("%lu", ops[i].data) : ImGui::Text("-");
+        }
+
+        ImGui::EndTable();
     }
 
     ImGui::End();
@@ -158,7 +194,7 @@ void GUI::renderCacheWindow(Simulator* sim) {
                 // Draw the content of the caches inside of the talbe
                 if (cache->isCacheSplit()) {
                     drawCacheTable(cache->getInstCache(), cache->getCacheLines() / 2, (char*) "Instructions");
-                    ImGui::Separator(); // Add a visual separator between split caches
+                    ImGui::Separator(); // Visual separator line
                     drawCacheTable(cache->getDataCache(), cache->getCacheLines() / 2, (char*) "Data");
                 } else {
                     drawCacheTable(cache->getDataCache(), cache->getCacheLines(), (char*) "Data");

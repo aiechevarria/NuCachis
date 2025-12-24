@@ -47,7 +47,7 @@ int preprocessTraceLine(char* currentLine) {
  * @param result Pointer that will store the operation 
  * @return int 0 if Ok, -1 if errors happened
  */
-int parseLine(char* line, MemoryOperation *result){
+int parseLine(char* line, MemoryOperation* result){
    char message[1000];
    int fieldId = 0;        // Number of the field. All traces should have at least 2 fields
    char* pch;
@@ -161,7 +161,7 @@ int parseLine(char* line, MemoryOperation *result){
  * @param numOperations Pointer to an unsigned integer that represents the number of operations.
  * @return int 0 if Ok, -1 if warnings, -2 if fatal errors
  */
-int parseTrace(const char* traceFile, MemoryOperation* ops, uint32_t* numOperations) {
+int parseTrace(const char* traceFile, MemoryOperation** ops, uint32_t* numOperations) {
    int errors = 0;
 
    // File related vars
@@ -186,7 +186,7 @@ int parseTrace(const char* traceFile, MemoryOperation* ops, uint32_t* numOperati
    rewind(file);
 
    // Allocate memory to store all operations
-   if((ops = (MemoryOperation*) malloc(sizeof(MemoryOperation) * numberOfLines)) == NULL){
+   if((*ops = (MemoryOperation*) malloc(sizeof(MemoryOperation) * numberOfLines)) == NULL){
       fprintf(stderr,"Error: It was not possible to allocate memory in trace parsing.\n");
       return -2;
    }
@@ -204,7 +204,7 @@ int parseTrace(const char* traceFile, MemoryOperation* ops, uint32_t* numOperati
       }
 
       // Parse the line and store it in the pointer to the instruction
-      if (parseLine(currentLine, &ops[numberOfOperations]) == -1) {
+      if (parseLine(currentLine, &(*ops)[numberOfOperations]) == -1) {
          errors++;
       } else {
          numberOfOperations++;
@@ -219,5 +219,5 @@ int parseTrace(const char* traceFile, MemoryOperation* ops, uint32_t* numOperati
       return 0;
    }
 
-   return -1;
+   return -2;
 }
