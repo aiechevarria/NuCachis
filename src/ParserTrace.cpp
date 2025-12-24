@@ -159,7 +159,7 @@ int parseLine(char* line, MemoryOperation *result){
  * @param traceFile A path to the trace file to parse
  * @param ops Pointer to a memory operation. The caller should NOT allocate memory, the function will do so dynamically depending on the travetrace's length
  * @param numOperations Pointer to an unsigned integer that represents the number of operations.
- * @return int The number of memory operations in the trace. -1 if error
+ * @return int 0 if Ok, -1 if warnings, -2 if fatal errors
  */
 int parseTrace(const char* traceFile, MemoryOperation* ops, uint32_t* numOperations) {
    int errors = 0;
@@ -178,7 +178,7 @@ int parseTrace(const char* traceFile, MemoryOperation* ops, uint32_t* numOperati
 
    if (file == NULL){
       fprintf(stderr,"Error: Cannot open file %s.\n", traceFile);
-      return -1;
+      return -2;
    }
 
    // Count the lines and rewind the pointer to the start of the file
@@ -188,7 +188,7 @@ int parseTrace(const char* traceFile, MemoryOperation* ops, uint32_t* numOperati
    // Allocate memory to store all operations
    if((ops = (MemoryOperation*) malloc(sizeof(MemoryOperation) * numberOfLines)) == NULL){
       fprintf(stderr,"Error: It was not possible to allocate memory in trace parsing.\n");
-      return -1;
+      return -2;
    }
 
    int currentLineNumber = 0;

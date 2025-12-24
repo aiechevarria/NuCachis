@@ -276,3 +276,28 @@ void GUI::renderWorkspace(Simulator* sim) {
     renderCacheWindow(sim);
     renderMemoryWindow(sim);
 }
+
+/**
+ * Displays an error box with the provided message.
+ * 
+ * @param message The message to display
+ * @param toggle Boolean variable to toggle when the close button is pressed
+ */
+void GUI::renderError(char* message, bool* toggle) {
+    SDL_GetWindowSize(window, &windowWidth, &windowHeight);
+
+    // Set a size and position based on the current workspace dimms
+    ImVec2 windowSize(windowWidth * ERROR_WINDOW_WIDTH, windowHeight * ERROR_WINDOW_HEIGHT);
+    ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
+    ImVec2 windowPos((windowWidth / 2 - windowWidth * ERROR_WINDOW_WIDTH / 2), (windowHeight / 2 - windowHeight * ERROR_WINDOW_HEIGHT / 2));
+    ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
+
+    ImGui::Begin("Error");
+    ImGui::Text(message);
+
+    if (ImGui::Button("Ok")) {
+        *toggle = !*toggle;
+    }
+
+    ImGui::End();
+}

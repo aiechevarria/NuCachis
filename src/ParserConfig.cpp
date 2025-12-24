@@ -250,6 +250,7 @@ dictionary *readConfigurationFile(char* iniName, uint8_t* cacheLevels) {
  * Parses all the configuration in the provided ini file and returns the config the sim should have.
  * @param iniName Path to the ini config file.
  * @param sc Pointer to a SimulatorConfig struct.
+ * @return 0 if Ok, -1 if warnings, -2 if fatal errors
  */
 int parseConfiguration(char* iniName, SimulatorConfig* sc) {
     int errors = 0;
@@ -259,7 +260,7 @@ int parseConfiguration(char* iniName, SimulatorConfig* sc) {
     dictionary *ini;
 
     if((ini = readConfigurationFile(iniName, &sc->miscCacheLevels)) == NULL) {
-       return 1;
+       return -2;
     }
 
     // CPU config
@@ -286,36 +287,35 @@ int parseConfiguration(char* iniName, SimulatorConfig* sc) {
     long maxMemory = pow(2, sc->cpuAddressWidth);
 
     if (sc->memSize > maxMemory) {
-	    fprintf(stderr,"Error: memory:size is too big for a %d bits machine.\n", sc->cpuAddressWidth);
+	    fprintf(stderr,"Warning: memory:size is too big for a %d bits machine.\n", sc->cpuAddressWidth);
         errors++;
     }
     if (sc->memSize % sc->memPageSize != 0) {
-	    fprintf(stderr,"Error: memory:size must be a multiple of memory:page_size\n");
+	    fprintf(stderr,"Warning: memory:size must be a multiple of memory:page_size\n");
         errors++;
     }
     if (!isPowerOf2(sc->memPageSize)) {
-	    fprintf(stderr,"Error: memory:page_size must be power of 2\n");
+	    fprintf(stderr,"Warning: memory:page_size must be power of 2\n");
         errors++;
     }
     if (sc->memPageBaseAddress % sc->memPageSize != 0) {
-	    fprintf(stderr,"Error: memory:page_base_address is invalid\n");
+	    fprintf(stderr,"Warning: memory:page_base_address is invalid\n");
         errors++;
     }
     if (sc->memPageBaseAddress < 0 || sc->memPageBaseAddress > maxMemory - 1) {
-	    fprintf(stderr,"Error: memory:page_base_address is out of range.\n");
+	    fprintf(stderr,"Warning: memory:page_base_address is out of range.\n");
         errors++;
     }
 
     // Multilevel cache configs
     // Browse the cache array and check the configuration of each cache.
-
-    for(int cacheNumber = 0; cacheNumber < sc->miscCacheLevels; cacheNumber++) {
+    for (int cacheNumber = 0; cacheNumber < sc->miscCacheLevels; cacheNumber++) {
         // cache:line_size
         char param[50];
         sprintf(param, "cache%d:line_size", cacheNumber + 1);
         parseConfLong(ini, param, &sc->cacheLineSize[cacheNumber],&errors,true);
         if (!isPowerOf2(sc->cacheLineSize[cacheNumber])) {
-	        fprintf(stderr,"Error: cache%d:line_size must be power of 2\n", cacheNumber + 1);
+	        fprintf(stderr,"Warning: cache%d:line_size must be power of 2\n", cacheNumber + 1);
             errors++;
 	    }
 
@@ -323,7 +323,7 @@ int parseConfiguration(char* iniName, SimulatorConfig* sc) {
         sprintf(param, "cache%d:size", cacheNumber + 1);
         parseConfLong(ini, param, &sc->cacheSize[cacheNumber],&errors, true);
         if ((sc->cacheSize[cacheNumber]) % (sc->cacheLineSize[cacheNumber]) != 0) {
-	        fprintf(stderr,"Error: cache%d:size must be a multiple of cache%d:line_size\n", cacheNumber + 1, cacheNumber + 1);
+	        fprintf(stderr,"Warning: cache%d:size must be a multiple of cache%d:line_size\n", cacheNumber + 1, cacheNumber + 1);
             errors++;
 	    }
 
@@ -332,10 +332,10 @@ int parseConfiguration(char* iniName, SimulatorConfig* sc) {
         const char* cacheSeparated = iniparser_getstring(ini, param, NULL);
         long long_separated = parseBoolean(cacheSeparated);
         if (long_separated == -1) {
-            fprintf(stderr,"Error: cache%d:separated value is not valid\n", cacheNumber + 1);
+            fprintf(stderr,"Warning: cache%d:separated value is not valid\n", cacheNumber + 1);
             errors++;
         } else if (long_separated == -2) {
-            fprintf(stderr,"Error: Missing value cache%d:separated\n", cacheNumber + 1);
+            fprintf(stderr,"Warning: Missing value cache%d:separated\n", cacheNumber + 1);
             errors++;
         } else {
             sc->cacheIsSplit[cacheNumber] = long_separated;
@@ -357,16 +357,16 @@ int parseConfiguration(char* iniName, SimulatorConfig* sc) {
         } else {
             long long_asociativity = parseInt(cache_asociativity);
             if (long_asociativity == -1) {
-                fprintf(stderr,"Error: cache%d:associativity value is not valid\n", cacheNumber + 1);
+                fprintf(stderr,"Warning: cache%d:associativity value is not valid\n", cacheNumber + 1);
                 errors++;
             } else if (long_asociativity == -2) {
-                fprintf(stderr,"Error: Missing value cache%d:associativity\n", cacheNumber + 1);
+                fprintf(stderr,"Warning: Missing value cache%d:associativity\n", cacheNumber + 1);
                 errors++;
             } else if (!isPowerOf2(long_asociativity)) {
-                fprintf(stderr,"Error: The value of cache%d:associativity must be power of 2\n", cacheNumber + 1);
+                fprintf(stderr,"Warning: The value of cache%d:associativity must be power of 2\n", cacheNumber + 1);
                 errors++;
             } else if (long_asociativity>num_lines) {
-                fprintf(stderr,"Error: The value of cache%d:associativity can't be bigger than the number of lines\n", cacheNumber + 1);
+                fprintf(stderr,"Warning: The value of cache%d:associativity can't be bigger than the number of lines\n", cacheNumber + 1);
                 errors++;
             }else {
                 sc->cacheAssoc[cacheNumber] = long_asociativity;
@@ -378,10 +378,10 @@ int parseConfiguration(char* iniName, SimulatorConfig* sc) {
         const char* cache_write_policy = iniparser_getstring(ini, param, NULL);
         long long_write_policy = parseWritePolicy(cache_write_policy);
         if (long_write_policy == -1) {
-            fprintf(stderr,"Error: cache%d:write_policy value is not valid\n", cacheNumber + 1);
+            fprintf(stderr,"Warning: cache%d:write_policy value is not valid\n", cacheNumber + 1);
             errors++;
         } else if (long_write_policy==-2) {
-            fprintf(stderr,"Error: Missing value cache%d:write_policy\n", cacheNumber + 1);
+            fprintf(stderr,"Warning: Missing value cache%d:write_policy\n", cacheNumber + 1);
             errors++;
         } else {
             sc->cachePolicyWrite[cacheNumber] = (PolicyWrite) long_write_policy;
@@ -392,10 +392,10 @@ int parseConfiguration(char* iniName, SimulatorConfig* sc) {
         const char* cache_replacement = iniparser_getstring(ini, param, NULL);
         long long_replacement = parseReplacementPolicy(cache_replacement);
         if (long_replacement == -1) {
-            fprintf(stderr,"Error: replacement_policy value for cache%d is not valid.\n", cacheNumber + 1);
+            fprintf(stderr,"Warning: replacement_policy value for cache%d is not valid.\n", cacheNumber + 1);
             errors++;
         } else if (long_replacement == -2) {
-            fprintf(stderr,"Error: Missing replacement_policy value for cache%d.\n", cacheNumber + 1);
+            fprintf(stderr,"Warning: Missing replacement_policy value for cache%d.\n", cacheNumber + 1);
             errors++;
         } else {
             sc->cachePolicyReplacement[cacheNumber] = (PolicyReplacement) long_replacement;
@@ -411,7 +411,7 @@ int parseConfiguration(char* iniName, SimulatorConfig* sc) {
        int64_t previous = sc->cacheLineSize[0];
        for(int cacheNumber = 1; cacheNumber < sc->miscCacheLevels; cacheNumber++) {
           if (sc->cacheLineSize[cacheNumber] != previous) {
-             fprintf(stderr,"Error: All the caches must have the same line_size.\n");
+             fprintf(stderr,"Warning: All the caches must have the same line_size.\n");
              errors++;
              break;
           }
@@ -419,7 +419,7 @@ int parseConfiguration(char* iniName, SimulatorConfig* sc) {
     }
 
     if (errors > 0) {
-        fprintf(stderr,"\nTotal errors: %d\n", errors);
+        fprintf(stderr,"\nTotal warnings: %d\n", errors);
         return -1;
     }
 

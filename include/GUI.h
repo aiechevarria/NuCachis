@@ -28,6 +28,10 @@
 #define CACHE_WINDOW_HEIGHT 1
 #define MIN_CACHE_TABLE_WIDTH 300.0f
 
+// Error window
+#define ERROR_WINDOW_WIDTH  0.40
+#define ERROR_WINDOW_HEIGHT 0.20
+
 class GUI {
 private:
     SDL_Window* window;
@@ -51,4 +55,5 @@ public:
     SDL_Window* getWindow();
     void renderPicker(char configPath[MAX_PATH_LENGTH], char tracePath[MAX_PATH_LENGTH], bool* clickedLaunch);
     void renderWorkspace(Simulator* sim);
+    void renderError(char* message, bool* toggle);
 };

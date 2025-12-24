@@ -1,5 +1,4 @@
 #include "Main.h"
-#include <string.h>
 
 /**
  * Parses the CLI arguments.
@@ -34,6 +33,7 @@ int main(int argc, char** argv) {
     char tracePath[MAX_PATH_LENGTH] = "\0";
     bool filesProvided = false;
     bool filesValidated = false;
+    bool filesParsingError = false;
 
     // Config and trace
     SimulatorConfig sc;
@@ -59,6 +59,14 @@ int main(int argc, char** argv) {
         ImGuiIO& io = ImGui::GetIO(); (void)io;
         SDL_Window* window = gui->getWindow();
 
+        // Load icons
+        io.Fonts->AddFontDefault();
+        static const ImWchar icons_ranges[] = { ICON_MIN_MD, ICON_MAX_MD, 0 };
+        ImFontConfig icons_config;
+        icons_config.MergeMode = true;
+        icons_config.PixelSnapH = true;
+        io.Fonts->AddFontFromFileTTF("assets/MaterialIcons-Regular.ttf", 16.0f, &icons_config, icons_ranges);
+
         // Main loop
         bool running = true;
 
@@ -76,21 +84,33 @@ int main(int argc, char** argv) {
             ImGui_ImplSDL2_NewFrame();
             ImGui::NewFrame();
 
-            // Render the main window (workspace) on each frame
+
+            // Display the file picker if no files have been provided
             if (!filesProvided) {
                 gui->renderPicker(configPath, tracePath, &filesProvided);
+                
+                // If there was an error in the parsing operation, show the error
+                if (filesParsingError) {
+                    gui->renderError((char*) "Error parsing configuration or trace.\nCheck the console for more info.", &filesParsingError);
+                }
             } else {
                 // Parse the files the first time they are provided
                 if (!filesValidated) {
-                    parseConfiguration(configPath, &sc);
-                    parseTrace(tracePath, ops, &sc.miscNumOperations);
-                    filesValidated = true;
+                    // Parse the trace and make sure there are no fatal errors
+                    if (parseConfiguration(configPath, &sc) != -2 &&
+                        parseTrace(tracePath, ops, &sc.miscNumOperations) != -2) {
+                        filesValidated = true;
 
-                    sim = new Simulator(&sc, ops);
+                        sim = new Simulator(&sc, ops);
+                    } else {
+                        // If there were fatal errors, signal that an error should be shown and that the files are not ready
+                        filesParsingError = true;
+                        filesProvided = false;
+                    }
+                } else {
+                    // Render the main window (workspace) on each frame once everything has been setup
+                    gui->renderWorkspace(sim);
                 }
-
-                // TODO check that both the config and trace are correct
-                gui->renderWorkspace(sim);
             }
 
             // Render the frame afterwards
