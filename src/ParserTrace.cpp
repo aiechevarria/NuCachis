@@ -9,6 +9,7 @@
 #include <math.h>
 
 #include "ParserTrace.h"
+#include "Misc.h"
 
 /**
  * Remove comments and other string operations on a line from a trace file.
@@ -163,12 +164,12 @@ int parseLine(char* line, MemoryOperation* result){
  * @param numOperations Pointer to an unsigned integer that represents the number of operations.
  * @return int 0 if Ok, -1 if warnings, -2 if fatal errors
  */
-int parseTrace(const char* traceFile, MemoryOperation** ops, uint32_t* numOperations) {
+int parseTrace(const char* traceFile, MemoryOperation*** ops, uint32_t* numOperations) {
    int errors = 0;
 
    // File related vars
-   FILE *file;
-   char *currentLine = NULL;
+   FILE* file;
+   char* currentLine = NULL;
    size_t len = 0;
    size_t read;
 
@@ -187,11 +188,8 @@ int parseTrace(const char* traceFile, MemoryOperation** ops, uint32_t* numOperat
    int numberOfLines = countLines(file);
    rewind(file);
 
-   // Allocate memory to store all operations
-   if((*ops = (MemoryOperation*) malloc(sizeof(MemoryOperation) * numberOfLines)) == NULL){
-      fprintf(stderr,"Error: It was not possible to allocate memory in trace parsing.\n");
-      return -2;
-   }
+   // Allocate memory to store as many operations as lines
+   *ops = (MemoryOperation**) malloc(sizeof(MemoryOperation*) * numberOfLines);
 
    int currentLineNumber = 0;
    int numberOfOperations = 0;
@@ -205,8 +203,11 @@ int parseTrace(const char* traceFile, MemoryOperation** ops, uint32_t* numOperat
          continue;
       }
 
+      // Allocate memory for that operation
+      (*ops)[numberOfOperations] = (MemoryOperation*) malloc(sizeof(MemoryOperation));
+
       // Parse the line and store it in the pointer to the instruction
-      if (parseLine(currentLine, &(*ops)[numberOfOperations]) == -1) {
+      if (parseLine(currentLine, (*ops)[numberOfOperations]) == -1) {
          errors++;
       } else {
          numberOfOperations++;

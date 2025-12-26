@@ -19,7 +19,7 @@ private:
     MemoryElement* hierarchyStart;  // The first element of the hierarchy. All messages will be sent to it
 
     // Instructions to execute
-    MemoryOperation* operations;
+    MemoryOperation** operations;
 
     // CPU variables
     int32_t addressWidth, wordWidth;        // In Bytes
@@ -30,7 +30,7 @@ private:
     double totalAccessTime;
 
 public:
-    Simulator(SimulatorConfig* sc, MemoryOperation* ops);
+    Simulator(SimulatorConfig* sc, MemoryOperation** ops);
     ~Simulator();
 
     void singleStep();
@@ -38,7 +38,7 @@ public:
     void reset();
 
     // Object getters
-    MemoryOperation* getOps();
+    MemoryOperation** getOps();
     MainMemory* getMemory();
     Cache* getCache(uint8_t cache);
 

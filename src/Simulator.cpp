@@ -4,10 +4,10 @@
 
 /**
  * Construct a new Simulator:: Simulator object
- * 
  * @param sc The simulator configs
+ * @param ops The trace of operations to execute
  */
-Simulator::Simulator(SimulatorConfig* sc, MemoryOperation* ops) {
+Simulator::Simulator(SimulatorConfig* sc, MemoryOperation** ops) {
     // Store the simulator and CPU configs
     wordWidth = sc->cpuWordWidth / 4;
     addressWidth = sc->cpuAddressWidth / 4;
@@ -50,7 +50,7 @@ Simulator::Simulator(SimulatorConfig* sc, MemoryOperation* ops) {
 Simulator::~Simulator() {
     // Free the data in the memory operations loaded from the trace
     for (int i = 0; i < numOperations; i++) {
-        free(operations[i].data);
+        free(operations[i]->data);
     }
 }
 
@@ -66,15 +66,15 @@ void Simulator::singleStep() {
 
     // Display information on console
     printf("\n\n------ Cycle %d ------\n\n", cycle);
-    if (operations[cycle].operation == LOAD)  printf("CPU: Requested data on 0x%lX\n", operations[cycle].address);
-    if (operations[cycle].operation == STORE) printf("CPU: Storing %lu on 0x%lX\n", operations[cycle].data[0], operations[cycle].address);
+    if (operations[cycle]->operation == LOAD)  printf("CPU: Requested data on 0x%lX\n", operations[cycle]->address);
+    if (operations[cycle]->operation == STORE) printf("CPU: Storing %lu on 0x%lX\n", operations[cycle]->data[0], operations[cycle]->address);
 
     // Throw the request to the first level of the memory hierarchy
-    hierarchyStart->processRequest(&operations[cycle], &rep);
+    hierarchyStart->processRequest(operations[cycle], &rep);
 
     // Unpack the reply and free the data
-    if (operations[cycle].operation == LOAD)  printf("CPU: Finished load, got %lu in %.2f\n", rep.data[0], rep.totalTime);
-    if (operations[cycle].operation == STORE)  printf("CPU: Finished store in %.2f\n", rep.totalTime);
+    if (operations[cycle]->operation == LOAD)  printf("CPU: Finished load, got %lu in %.2f\n", rep.data[0], rep.totalTime);
+    if (operations[cycle]->operation == STORE)  printf("CPU: Finished store in %.2f\n", rep.totalTime);
     totalAccessTime = rep.totalTime;
     free(rep.data);
 
@@ -111,7 +111,7 @@ void Simulator::reset() {
  * Returns the entire parsed trace.
  * @return MemoryOperation* Pointer to an array of memory operations that represent the trace.
  */
-MemoryOperation* Simulator::getOps() {
+MemoryOperation** Simulator::getOps() {
     return operations;
 }
 

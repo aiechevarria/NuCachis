@@ -34,8 +34,8 @@ Cache::Cache(SimulatorConfig* sc, uint8_t identifier) {
 
     if (isSplit) {
         // Allocate the caches
-        caches[DATA_CACHE] = (CacheLine*) malloc(sets / 2 * ways * sizeof(CacheLine));
-        caches[INST_CACHE] = (CacheLine*) malloc(sets / 2 * ways * sizeof(CacheLine));
+        caches[DATA_CACHE] = (CacheLine*) malloc(sets * ways * sizeof(CacheLine));
+        caches[INST_CACHE] = (CacheLine*) malloc(sets * ways * sizeof(CacheLine));
     } else {
         caches[DATA_CACHE] = (CacheLine*) malloc(sets * ways * sizeof(CacheLine));
         caches[INST_CACHE] = nullptr;
@@ -350,7 +350,7 @@ double Cache::fetchFromLowerLevel(CacheLine* cache, uint64_t address, bool isDat
     // Once the request is here, find a place to put it
     // Find replacement line function that uses the policy of the cache
     int32_t newLine = findReplacement(cache, address);
-    printf("L%u%c: Picked line %d to be evicted\n", id, isData ? 'D' : 'I', newLine);
+    printf("L%u%c: Picked line %d to be evicted\n", id + 1, isData ? 'D' : 'I', newLine);
 
     // Evict the data to the lower level
     if (cache[newLine].valid && cache[newLine].dirty) {
@@ -368,7 +368,7 @@ double Cache::fetchFromLowerLevel(CacheLine* cache, uint64_t address, bool isDat
         evictRep.totalTime = 0.0;
 
         // Send the eviction as a STORE to the lower level
-        printf("L%u%c: Line %d is dirty and will be sent to the lower level\n", id, isData ? 'D' : 'I', newLine);
+        printf("L%u%c: Line %d is dirty and will be sent to the lower level\n", id + 1, isData ? 'D' : 'I', newLine);
         next->processRequest(&evictOp, &evictRep);
 
         // Update the stats
@@ -420,15 +420,16 @@ void Cache::processRequest(MemoryOperation* op, MemoryReply* rep) {
     if (op->operation == LOAD) {
         // If it is present 
         if (line != -1) {
-            printf("L%u%c: Hit in line %d\n", id, op->isData ? 'D' : 'I', line);
+            printf("L%u%c: Hit in line %d\n", id + 1, op->isData ? 'D' : 'I', line);
 
             // Reply with that data
             for (int i = 0; i < op->numWords; i++) {
-                rep->data[i] = cache[line].content[getOffset(op->address) / (wordWidth / 8) + i];
+                uint32_t index = getOffset(op->address) / (wordWidth / 8) + i;
+                rep->data[i] = cache[line].content[index];
             }
         } else {
             // If it is not present
-            printf("L%u%c: Miss, fetching from lower level\n", id, op->isData ? 'D' : 'I');
+            printf("L%u%c: Miss, fetching from lower level\n", id + 1, op->isData ? 'D' : 'I');
 
             // Query the lower level
             rep->totalTime += fetchFromLowerLevel(cache, op->address, op->isData);
@@ -445,13 +446,13 @@ void Cache::processRequest(MemoryOperation* op, MemoryReply* rep) {
         // If the cache is WT
         if (policyWrite == WRITE_THROUGH) {
             // Send it to the lower level and be done with it
-            printf("L%u%c: Write-Through, sending store to lower level\n", id, op->isData ? 'D' : 'I');
+            printf("L%u%c: Write-Through, sending store to lower level\n", id + 1, op->isData ? 'D' : 'I');
 
         } else if (policyWrite == WRITE_BACK) {
             // If the line is not present
             if (line != -1) {
                 // Query the lower level (Write-allocate)
-                printf("L%u%c: Write-Back allocate miss, fetching from lower level\n", id, op->isData ? 'D' : 'I');
+                printf("L%u%c: Write-Back allocate miss, fetching from lower level\n", id + 1, op->isData ? 'D' : 'I');
                 rep->totalTime += fetchFromLowerLevel(cache, op->address, op->data);
 
                 // Search again for the address
@@ -459,11 +460,12 @@ void Cache::processRequest(MemoryOperation* op, MemoryReply* rep) {
                 assert(line != -1 && "The line should be found after being brought"); 
             }
 
-            printf("L%u%c: Storing in line %d\n", id, op->isData ? 'D' : 'I', line);
+            printf("L%u%c: Storing in line %d\n", id + 1, op->isData ? 'D' : 'I', line);
 
             // Store the data
             for (int i = 0; i < op->numWords; i++) {
-                cache[line].content[getOffset(op->address) / (wordWidth / 8) + i] = op->data[i];
+                uint32_t index = getOffset(op->address) / (wordWidth / 8) + i;
+                rep->data[i] = cache[line].content[index];
             }
             
             // Flag the line as dirty

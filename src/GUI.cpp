@@ -95,7 +95,7 @@ void GUI::drawCacheTable(CacheLine* cache, uint32_t lineSizeWords, uint32_t numL
  */
 void GUI::renderInstructionWindow(Simulator* sim) {
     // Get the operations
-    MemoryOperation* ops = sim->getOps();
+    MemoryOperation** ops = sim->getOps();
     uint32_t numOps = sim->getNumOps();
     uint32_t cycle = sim->getCurrentCycle();
 
@@ -151,11 +151,11 @@ void GUI::renderInstructionWindow(Simulator* sim) {
 
             // Draw the table
             ImGui::TableNextRow();
-            ImGui::TableSetColumnIndex(0); ImGui::Checkbox(checkboxId, &ops[i].hasBreakPoint);
-            ImGui::TableSetColumnIndex(1); ImGui::Text("%c", ops[i].operation == LOAD ? 'L' : 'S');
-            ImGui::TableSetColumnIndex(2); ImGui::Text("%c", ops[i].isData ? 'D' : 'I');
-            ImGui::TableSetColumnIndex(3); ImGui::Text("0x%lX", ops[i].address);
-            ImGui::TableSetColumnIndex(4); ops[i].operation == STORE ? ImGui::Text("%lu", ops[i].data[0]) : ImGui::Text("-");
+            ImGui::TableSetColumnIndex(0); ImGui::Checkbox(checkboxId, &ops[i]->hasBreakPoint);
+            ImGui::TableSetColumnIndex(1); ImGui::Text("%c", ops[i]->operation == LOAD ? 'L' : 'S');
+            ImGui::TableSetColumnIndex(2); ImGui::Text("%c", ops[i]->isData ? 'D' : 'I');
+            ImGui::TableSetColumnIndex(3); ImGui::Text("0x%lX", ops[i]->address);
+            ImGui::TableSetColumnIndex(4); ops[i]->operation == STORE ? ImGui::Text("%lu", ops[i]->data[0]) : ImGui::Text("-");
         }
 
         ImGui::EndTable();

@@ -37,7 +37,7 @@ int main(int argc, char** argv) {
 
     // Config and trace
     SimulatorConfig sc;
-    MemoryOperation* ops;
+    MemoryOperation** ops;  // Pointer to an array of pointers to operations
 
     // Structures
     Simulator* sim;
