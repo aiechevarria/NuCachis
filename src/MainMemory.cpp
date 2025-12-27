@@ -51,9 +51,29 @@ uint64_t MainMemory::getPageBaseAddress() {
 }
 
 /**
+ * Gets the number of single accesses.
+ * @return uint64_t The number of single accesses. 
+ */
+uint64_t MainMemory::getAccessesSingle() {
+    return accessesSingle;
+}
+
+/**
+ * Gets the number of burst accesses.
+ * @return uint64_t The number of burst accesses. 
+ */
+uint64_t MainMemory::getAccessesBurst() {
+    return accessesBurst;
+}
+
+/**
  * Resets the entire main memory.
  */
 void MainMemory::flush() {
+    // Init the stats
+    accessesSingle = 0;
+    accessesBurst = 0;
+
     // Calculate the maximum number of array items to cover up a page
     uint64_t pageLimit = pageSize / wordWidth;
 
@@ -92,4 +112,8 @@ void MainMemory::processRequest(MemoryOperation* op, MemoryReply* rep) {
     // The first access takes accessTimeSingle. If there is more than one word in the operation, the following take accessTimeBurst
     rep->totalTime += accessTimeSingle;
     rep->totalTime += accessTimeBurst * (op->numWords - 1);
+
+    // Update the stats following the same principles
+    accessesSingle++;
+    accessesBurst += (op->numWords - 1);
 }

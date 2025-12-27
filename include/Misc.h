@@ -68,6 +68,7 @@ typedef struct {
 
 /* Global variables */
 extern int debugLevel;
+extern uint32_t cycle;        // This should be in Simulator, but due to cyclic reference issues is has to be here, sorry.
 
 /* Misc parsing functions */
 // Policy parsing functions

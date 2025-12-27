@@ -2,6 +2,8 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <cstdlib>
+#include <math.h>
 
 #include "Misc.h"
 #include "MemoryElement.h"

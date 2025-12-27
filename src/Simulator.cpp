@@ -1,6 +1,4 @@
 #include "Simulator.h"
-#include "MainMemory.h"
-#include "Misc.h"
 
 /**
  * Construct a new Simulator:: Simulator object
@@ -60,26 +58,29 @@ Simulator::~Simulator() {
 void Simulator::singleStep() {
     MemoryReply rep;
 
-    // Set up the reply
-    rep.totalTime = 0.0;
-    rep.data = (uint64_t*) malloc(sizeof(uint64_t));
+    // Check that the cycle is not greater than the number of ops
+    if (cycle < numOperations) {
+        // Set up the reply
+        rep.totalTime = 0.0;
+        rep.data = (uint64_t*) malloc(sizeof(uint64_t));
 
-    // Display information on console
-    printf("\n\n------ Cycle %d ------\n\n", cycle);
-    if (operations[cycle]->operation == LOAD)  printf("CPU: Requested data on 0x%lX\n", operations[cycle]->address);
-    if (operations[cycle]->operation == STORE) printf("CPU: Storing %lu on 0x%lX\n", operations[cycle]->data[0], operations[cycle]->address);
+        // Display information on console
+        printf("\n\n------ Cycle %d ------\n\n", cycle);
+        if (operations[cycle]->operation == LOAD)  printf("CPU: Requested data on 0x%lX\n", operations[cycle]->address);
+        if (operations[cycle]->operation == STORE) printf("CPU: Storing %lu on 0x%lX\n", operations[cycle]->data[0], operations[cycle]->address);
 
-    // Throw the request to the first level of the memory hierarchy
-    hierarchyStart->processRequest(operations[cycle], &rep);
+        // Throw the request to the first level of the memory hierarchy
+        hierarchyStart->processRequest(operations[cycle], &rep);
 
-    // Unpack the reply and free the data
-    if (operations[cycle]->operation == LOAD)  printf("CPU: Finished load, got %lu in %.2f\n", rep.data[0], rep.totalTime);
-    if (operations[cycle]->operation == STORE)  printf("CPU: Finished store in %.2f\n", rep.totalTime);
-    totalAccessTime = rep.totalTime;
-    free(rep.data);
+        // Unpack the reply and free the data
+        if (operations[cycle]->operation == LOAD)  printf("CPU: Finished load, got %lu in %.2f\n", rep.data[0], rep.totalTime);
+        if (operations[cycle]->operation == STORE)  printf("CPU: Finished store in %.2f\n", rep.totalTime);
+        totalAccessTime += rep.totalTime;
+        free(rep.data);
 
-    // Enter a new cycle
-    cycle++;
+        // Enter a new cycle
+        cycle++;
+    }
 }
 
 /**
@@ -87,7 +88,14 @@ void Simulator::singleStep() {
  * @param stopOnBreakpoint If true, it will stop on the first breakpoint it reaches, if false, it will run until the trace ends.
  */
 void Simulator::stepAll(bool stopOnBreakpoint) {
+    for (int i = cycle; i < numOperations; i++) {
+        // Check if there was a breakpoint prior to executing the operation
+        bool hasBreakPoint = operations[i]->hasBreakPoint;
 
+        // Run the cycle and then stop afterwards if it had a breakpoint
+        singleStep();
+        if (hasBreakPoint && stopOnBreakpoint) break;
+    }
 }
 
 /**
@@ -165,9 +173,9 @@ uint32_t Simulator::getWordWidth() {
 }
 
 /**
- * Returns the current cycle
- * @return uint32_t The program counter.
+ * Returns the total access time.
+ * @return uint32_t The total access time.
  */
-uint32_t Simulator::getCurrentCycle() {
-    return cycle;
+double Simulator::getTotalAccessTime() {
+    return totalAccessTime;
 }

@@ -14,8 +14,9 @@ const char* strWritePolicy[] = {"wt", "wb"};
 const char* replacementPolicyStr(PolicyReplacement policy) { return strReplacementPolicy[policy]; }
 const char* writePolicyStr(PolicyWrite policy) { return strWritePolicy[policy]; }
 
-// Debug variable
+// Global variables
 int debugLevel = 2;
+uint32_t cycle = 0;
 
 /**
  * Convert string into long. It can have a multiplier G, M or K. Any other char will result in error.

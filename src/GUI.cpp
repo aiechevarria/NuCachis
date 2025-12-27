@@ -167,7 +167,6 @@ void GUI::renderInstructionWindow(Simulator* sim) {
     // Get the operations
     MemoryOperation** ops = sim->getOps();
     uint32_t numOps = sim->getNumOps();
-    uint32_t cycle = sim->getCurrentCycle();
 
     // Set a size and position based on the current workspace dimms
     ImVec2 windowSize(windowWidth * INSTR_WINDOW_WIDTH, windowHeight * INSTR_WINDOW_HEIGHT);
@@ -236,22 +235,36 @@ void GUI::renderInstructionWindow(Simulator* sim) {
 
 /**
  * Renders the stats window.
+ * @param sim Pointer to the simulator
  */
 void GUI::renderStatsWindow(Simulator* sim) {
     ImVec2 windowSize(windowWidth * STATS_WINDOW_WIDTH, windowHeight * STATS_WINDOW_HEIGHT);
     ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
     ImVec2 windowPos(0, windowHeight * INSTR_WINDOW_HEIGHT);
     ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
-
+    
     // Start the window disabling collapse
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoCollapse;
     ImGui::Begin("Statistics", nullptr, window_flags);
 
     ImGui::Text("CPU:");
-    ImGui::Text("\tTODO");
+    ImGui::Text("\tTotal access time (s): %.4f", sim->getTotalAccessTime());
+    cycle != 0 ? ImGui::Text("\tAverage memory access time (s): %.4f", sim->getTotalAccessTime() / (double) cycle) : ImGui::Text("\tAverage memory access time (ms): -");
+    
+    for (int i = 0; i < sim->getNumCaches(); i++) {
+        Cache* cache = sim ->getCache(i);
+        ImGui::Text("Cache L%d:", i + 1);
+        ImGui::Text("\tTotal accesses: %d", cache->getAccesses());
+        ImGui::Text("\tHits: %d", cache->getHits());
+        ImGui::Text("\tMisses: %d", cache->getMisses());
+        cycle != 0 ? ImGui::Text("\tHit rate: %.1f%%", cache->getHits() / (double) cycle * 100) : ImGui::Text("\tHit rate: -");
+        cycle != 0 ? ImGui::Text("\tMiss rate: %.1f%%", cache->getMisses() / (double) cycle * 100) : ImGui::Text("\tMiss rate: ");
+    }
 
     ImGui::Text("Memory:");
-    ImGui::Text("\tTODO");
+    ImGui::Text("\tTotal accesses: %ld", sim->getMemory()->getAccessesBurst() + sim->getMemory()->getAccessesSingle());
+    ImGui::Text("\tFirst word accesses: %ld", sim->getMemory()->getAccessesSingle());
+    ImGui::Text("\tBurst accesses: %ld", sim->getMemory()->getAccessesBurst());
 
     ImGui::End();
 }

@@ -8,8 +8,6 @@
 #include "PolicyReplacement.h"
 #include "PolicyWrite.h"
 
-static uint32_t cycle;
-
 class Simulator {
 private:
     // Private variables
@@ -47,5 +45,5 @@ public:
     uint8_t getNumCaches();
     uint32_t getAddressWidth();
     uint32_t getWordWidth();
-    uint32_t getCurrentCycle();
+    double getTotalAccessTime();
 };

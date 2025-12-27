@@ -22,6 +22,9 @@ private:
     int64_t size, pageSize, pageBaseAddress;
     double accessTimeSingle, accessTimeBurst;
 
+    // Stats
+    uint64_t accessesSingle, accessesBurst;
+
 public:
     MainMemory(SimulatorConfig* sc);
     ~MainMemory();
@@ -29,6 +32,8 @@ public:
     MemoryLine* getMemory();
     uint64_t getPageSize();
     uint64_t getPageBaseAddress();
+    uint64_t getAccessesSingle();
+    uint64_t getAccessesBurst();
 
     virtual void processRequest(MemoryOperation* op, MemoryReply* rep) override;
 

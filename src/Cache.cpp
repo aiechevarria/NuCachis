@@ -1,9 +1,4 @@
 #include "Cache.h"
-#include "Misc.h"
-#include "PolicyWrite.h"
-#include "Simulator.h"
-#include <cstdlib>
-#include <math.h>
 
 /**
  * Constructs a new Cache object.
@@ -443,8 +438,9 @@ void Cache::processRequest(MemoryOperation* op, MemoryReply* rep) {
 
    if (debugLevel >= 1) printf("Debug: L%d, Address=%lu, Tag=%lu, Set=%u, Offset=%u\n", id + 1, op->address, getTag(op->address), getSet(op->address), getOffset(op->address));
     
-    // Update the stats with the access time of this cache
+    // Update the stats
     rep->totalTime += accessTime;
+    accesses++;
 
     // Fetch the correct cache
     if (isSplit && !op->isData) {
@@ -461,12 +457,14 @@ void Cache::processRequest(MemoryOperation* op, MemoryReply* rep) {
         // If it is present 
         if (line != -1) {
             printf("L%u%c: Hit in line %d\n", id + 1, op->isData ? 'D' : 'I', line);
+            hits++;
 
             // Reply with that data
             extractWordsFromLine(cache[line], op, rep);
         } else {
             // If it is not present
             printf("L%u%c: Miss, fetching from lower level\n", id + 1, op->isData ? 'D' : 'I');
+            misses++;
 
             // Query the lower level
             rep->totalTime += fetchFromLowerLevel(cache, op->address, op->isData);
@@ -482,6 +480,9 @@ void Cache::processRequest(MemoryOperation* op, MemoryReply* rep) {
         // For stores
         // If the cache is WT
         if (policyWrite == WRITE_THROUGH) {
+            // Note it as a hit allways
+            hits++;
+            
             // If the data is present in the cache, store it but do not flag it as dirty
             if (line != -1) {
                 printf("L%u%c: Write-Through, updating already present data\n", id + 1, op->isData ? 'D' : 'I');
@@ -496,6 +497,7 @@ void Cache::processRequest(MemoryOperation* op, MemoryReply* rep) {
             // If the cache is WB
             // If the line is not present
             if (line == -1) {
+                misses++;
                 // Query the lower level (Write-allocate)
                 printf("L%u%c: Write-Back allocate miss, fetching from lower level\n", id + 1, op->isData ? 'D' : 'I');
                 rep->totalTime += fetchFromLowerLevel(cache, op->address, op->data);
@@ -503,6 +505,8 @@ void Cache::processRequest(MemoryOperation* op, MemoryReply* rep) {
                 // Search again for the address
                 line = searchAddress(cache, op->address);
                 assert(line != -1 && "The line should be found after being brought"); 
+            } else {
+                hits++;
             }
 
             printf("L%u%c: Storing in line %d\n", id + 1, op->isData ? 'D' : 'I', line);
